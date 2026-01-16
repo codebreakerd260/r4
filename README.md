@@ -1,80 +1,92 @@
-# OpenSCAD Robot Twin (ROS & AI Edition)
+# r4: Robot Control Studio
 
-A fully parametric, modular CAD twin for a Pan-Tilt Mobile Robot, designed for AI and ROS integration.
+**r4** is a web-based digital twin and control interface for mobile robots. It combines real-time 3D visualization, immersive environment simulation, and low-latency hardware control into a single "Command Center" dashboard.
 
-## Project Structure
+![Robot Studio Preview](https://via.placeholder.com/800x450.png?text=r4+Robot+Studio+Interface)
+*(Replace with actual screenshot)*
 
-This project uses a "React-style" component architecture:
+## 🌟 Key Features
 
--   **`main.scad`**: The entry point. Controls the global view and assembles the master model.
--   **`config.scad`**: Global configuration (dimensions, animation state, colors).
--   **`parts/`**: Atomic components (Servos, Motors, Sensors, Printed Parts).
--   **`assemblies/`**: Sub-assemblies combining parts (Chassis, Gimbal, Electronics).
+### 🖥️ 3D Digital Twin
+-   **High-Fidelity Model**: Uses detailed STL exports from our CAD source (OpenSCAD) to render the robot with physically based materials (Gunmetal, Rubber, Glossy Plastic).
+-   **Real-Time Kinematics**: Visualizes differential drive movement and gimbal kinematics (Pan/Tilt) in real-time.
 
-## Getting Started
+### 🏠 Immersive Environment
+-   **Dynamic Room**: A fully configurable 3D workspace. Adjust width, depth, and height to match your real surroundings.
+-   **"Magic Mirror" Wall**: The front wall renders your live **Webcam Feed** using `getUserMedia`. This creates a mixed-reality experience where the digital robot seems to exist in your physical room.
+-   **Smart Desk Bounds**: Drive your robot on a virtual desk setup. The system automatically enforces wall boundaries to prevent accidents.
 
-1.  **Install OpenSCAD**: Download and install from [openscad.org](https://openscad.org/).
-2.  **Open Project**: Open `main.scad` in OpenSCAD.
-3.  **Enable Preview**: Check "Automatic Reload and Preview" in the *Design* menu.
+### 👓 FPV Monitor System
+-   **Picture-in-Picture**: A virtual monitor on the desk displays the robot's **First Person View**.
+-   **True Perspective**: The FPV camera realistically renders the room, the desk, and the webcam wall from the robot's vantage point.
 
-## View Controller
+### 🎮 Control Interface
+-   **Dual Joystick Control**:
+    -   **Left Stick**: Omnidirectional Drive (Velocity/Turn).
+    -   **Right Stick**: Camera Gimbal (Pan/Tilt).
+-   **Touch Optimized**: Works seamlessly on touchscreens or with mouse input.
+-   **Tuning**: Adjustable sensitivity sliders for speed and turn rates.
 
-In `main.scad`, change the `view_index` variable to inspect different subsystems:
+---
 
-| Index | View | Description |
-| :--- | :--- | :--- |
-| `0` | **Master View** | Complete robot assembly. |
-| `100` | **Structure** | Chassis Layer (Plates, Standoffs, Drive Train). |
-| `200` | **Sensors** | Sensor Layer (IR Arrays, Ultrasonic). |
-| `300` | **Gimbal** | Pan-Tilt Mechanism (Servos, C-Cradle, Camera). |
-| `400` | **Electronics** | Compute Layer (Pi 4, IMU, Motor Drivers). |
+## 🏗️ Architecture
 
-## Export (`export/`)
+The system follows a modern decoupled architecture:
 
-The model is pre-configured to export specific sub-assemblies for manufacturing or simulation. Open these files individually to render/export:
+1.  **Frontend (`web/`)**: Built with **React**, **Vite**, and **React Three Fiber**. Handles 3D rendering, user input, and WebSocket communication.
+2.  **Backend (`api/`)**: Built with **FastAPI** (Python). Acts as the bridge between the web interface and the physical robot hardware (Serial/ROS).
+3.  **Hardware (Design)**: Source CAD models defined in **OpenSCAD** (`main.scad`).
 
-| File | Component | Description |
-| :--- | :--- | :--- |
-| `1a_wheel_left.scad` | **Left Wheel** | Positioned In-Place (-X). |
-| `1b_wheel_right.scad` | **Right Wheel** | Positioned In-Place (+X). |
-| `2a_base_pan.scad` | **Pan Assembly** | Base Mount + Pan Servo Body. |
-| `2b_u_bracket.scad` | **U-Bracket** | Bracket + Integrated Servo Horns. |
-| `2c_cam_assembly.scad` | **Camera Head** | C-Cradle + Tilt Servo Body + Camera. |
-| `3_remaining_all.scad` | **Main Body** | Chassis, Sensors, Electronics (Excludes Wheels & Gimbal). |
+---
 
-## Modules
+## 🚀 Getting Started
 
-### Drive Train (`assemblies/structure.scad`)
--   Features compact **TT Motor Mounts ("Fangs")** with axle clearance cutouts.
--   Mirrored symmetrical design for optimal footprint.
+### Prerequisites
+-   **Node.js** (v18+)
+-   **Python** (v3.10+)
 
-### Gimbal (`assemblies/gimbal_layer.scad`)
--   **Servo Horn Integration**: Horns are geometrically fused to the **U-Bracket** (not the servo), matching the physical "clipped-in" assembly.
--   **Split Topology**: Servos utilize a split `SG90_Body` vs `Servo_Horn` architecture to prevent visual artifacts.
--   **Moving Topology**: The Tilt servo is clamped by the C-Cradle.
+### 1. Frontend Setup (The Studio)
+```bash
+cd web
+npm install
+npm run dev
+# Open http://localhost:5173
+```
 
--   `wheel_rot`: Simulates forward motion.
+### 2. Backend Setup (The Bridge)
+In a new terminal:
+```bash
+cd api
+# Create/Activate Virtual Env (Recommended)
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate # Mac/Linux
 
-## Web Interface (Phase 2)
+pip install -r requirements.txt
+uvicorn main:app --reload
+# Listening on http://localhost:8000
+```
 
-The robot features a hybrid React + FastAPI interface for control and visualization.
+---
 
-### Architecture
--   **Frontend (`web/`)**: Vite + React + TypeScript + R3F. Visualizes the `export/` models in a browser.
--   **Backend (`api/`)**: Python FastAPI. Bridges the web UI to hardware (Serial/ROS) and AI (MediaPipe).
+## 🕹️ Controls Guide
 
-### Setup
-1.  **Frontend**:
-    ```bash
-    cd web
-    npm install
-    npm run dev
-    ```
-2.  **Backend**:
-    ```bash
-    # Windows
-    api\venv\Scripts\activate
-    pip install -r api/requirements.txt
-    uvicorn api.main:app --reload
-    ```
+| Input | Action |
+| :--- | :--- |
+| **Left Joystick** | **Drive**: Push Up/Down for Speed, Left/Right for Turning. |
+| **Right Joystick** | **Look**: Push Up/Down (Tilt), Left/Right (Pan). |
+| **Room Controls** | Use the **Leva Panel** (Top Right) to resize the room or move the desk setup. |
+| **Webcam** | Allow browser camera access to enable the "Magic Wall". |
 
+---
+
+## 🛠️ CAD Source
+
+The physical robot design is parametric and defined in **OpenSCAD**.
+-   **Entry Point**: `main.scad`.
+-   **Parameters**: `config.scad`.
+-   Exported STLs are located in `web/public/models/`.
+
+---
+
+*Project r4 - codebreakerd260*
