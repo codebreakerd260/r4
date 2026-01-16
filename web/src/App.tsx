@@ -8,7 +8,7 @@ function App() {
   // Configurable Sensitivity
   // Leva controls appear in the panel
   const config = useControls('Sensitivity', {
-    maxVelocity: { value: 100, min: 10, max: 250, label: 'Max Speed (mm/s)' },
+    maxVelocity: { value: 25, min: 10, max: 50, label: 'Max Speed (mm/s)' },
     maxOmega: { value: 1.0, min: 0.5, max: 1.5, label: 'Turn Speed (rad/s)' },
     maxPan: { value: 45, min: 1, max: 120, label: 'Pan Range (deg)' },
     maxTilt: { value: 20, min: 1, max: 90, label: 'Tilt Range (deg)' }
@@ -22,7 +22,7 @@ function App() {
   const handleDrive = (data: { x: number; y: number }) => {
     // scale inputs by config values
     setMoveCmd({
-      v: data.y * config.maxVelocity,
+      v: data.y * -config.maxVelocity,
       w: data.x * -config.maxOmega
     });
   };
