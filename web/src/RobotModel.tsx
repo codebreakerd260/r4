@@ -6,9 +6,10 @@ import { Group } from 'three';
 interface RobotModelProps {
   moveCmd: { v: number; w: number };
   lookCmd: { pan: number; tilt: number };
+  robotState?: any;
 }
 
-export function RobotModel({ moveCmd, lookCmd }: RobotModelProps) {
+export function RobotModel({ moveCmd, lookCmd, robotState }: RobotModelProps) {
   const robotRef = useRef<Group>(null);
 
   // Load STLs
@@ -90,6 +91,17 @@ export function RobotModel({ moveCmd, lookCmd }: RobotModelProps) {
 
     pose.current.x = nextX;
     pose.current.z = nextZ;
+
+    // Sync to Shared State for Camera Monitor
+    if (robotState) {
+      robotState.current = {
+        x: nextX,
+        z: nextZ,
+        theta: pose.current.theta,
+        pan: lookCmd.pan,
+        tilt: lookCmd.tilt
+      };
+    }
 
     // Apply Global Transform to robotRef
     if (robotRef.current) {

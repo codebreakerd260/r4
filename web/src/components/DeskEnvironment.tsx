@@ -1,79 +1,59 @@
-import { Grid } from '@react-three/drei';
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { PerspectiveCamera, RenderTexture } from '@react-three/drei';
+import { DeskLayout } from './DeskLayout';
+import { PerspectiveCamera as PerspectiveCameraType } from 'three';
 
-export function DeskEnvironment() {
+interface DeskEnvironmentProps {
+    robotState?: any;
+}
+
+export function DeskEnvironment({ robotState }: DeskEnvironmentProps) {
+    const camRef = useRef<PerspectiveCameraType>(null);
+    const P_TILT_HEIGHT = 155.6; // Approximate camera height
+
+    useFrame(() => {
+        if (camRef.current && robotState && robotState.current) {
+            const { x, z, theta, pan, tilt } = robotState.current;
+
+            // Sync Position
+            camRef.current.position.set(x, P_TILT_HEIGHT, z);
+
+            // Sync Rotation
+            // Theta (Base Heading, deg) + Pan (Head Turn, deg)
+            const globalHeading = (theta + pan) * (Math.PI / 180);
+            const tiltRad = tilt * (Math.PI / 180);
+
+            // Apply Y rotation (Heading)
+            // Note: Camera defaults to looking down -Z. 
+            // Our theta=0 faces -Z. +Theta is CCW (Left). 
+            // Three.js rotY IS CCW. So direct mapping works.
+            camRef.current.rotation.set(tiltRad, globalHeading, 0, 'YXZ');
+        }
+    });
+
     return (
         <group>
-            {/* Desk Surface (1200mm x 800mm) */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
-                <planeGeometry args={[1200, 800]} />
-                <meshStandardMaterial color="#222" roughness={0.9} metalness={0.0} />
-            </mesh>
+            {/* The Real Physical World */}
+            <DeskLayout />
 
-            {/* Table Edge */}
-            <mesh position={[0, -15, 0]} receiveShadow>
-                <boxGeometry args={[1200, 30, 800]} />
-                <meshStandardMaterial color="#1a1a1a" />
-            </mesh>
-
-            {/* Grid */}
-            <Grid
-                position={[0, 0.1, 0]}
-                args={[1200, 800]}
-                sectionSize={100}
-                cellSize={25}
-                sectionColor="#444"
-                cellColor="#2a2a2a"
-                fadeDistance={800}
-            />
-
-            {/* Monitor (Back Center) */}
+            {/* The Monitor Screen (Picture-in-Picture) */}
             <group position={[0, 230, -275]}>
-                {/* Screen */}
-                <mesh position={[0, 0, 0]}>
-                    <boxGeometry args={[500, 300, 20]} />
-                    <meshStandardMaterial color="#111" roughness={0.2} />
-                </mesh>
-                {/* Display Area (Emissive) */}
                 <mesh position={[0, 0, 11]}>
                     <planeGeometry args={[480, 280]} />
-                    <meshBasicMaterial color="#000044" toneMapped={false} />
-                </mesh>
-                {/* Stand */}
-                <mesh position={[0, -150, -20]}>
-                    <cylinderGeometry args={[15, 25, 150]} />
-                    <meshStandardMaterial color="#333" />
-                </mesh>
-                <mesh position={[0, -225, -20]}>
-                    <boxGeometry args={[150, 10, 150]} />
-                    <meshStandardMaterial color="#333" />
-                </mesh>
-            </group>
+                    <meshBasicMaterial toneMapped={false}>
+                        <RenderTexture attach="map" width={512} height={512}>
+                            <PerspectiveCamera makeDefault manual ref={camRef} position={[0, 150, 0]} fov={80} />
 
-            {/* Desk Lamp (Back Right) */}
-            <group position={[-400, 0, -200]} rotation={[0, 0.75, 0]}>
-                {/* Base */}
-                <mesh position={[0, 10, 0]}>
-                    <cylinderGeometry args={[40, 50, 20]} />
-                    <meshStandardMaterial color="white" />
+                            {/* Lighting for inside the monitor */}
+                            <ambientLight intensity={0.6} />
+                            <pointLight position={[0, 1000, 0]} intensity={1.0} />
+
+                            {/* The World seen by the Robot */}
+                            <DeskLayout />
+                        </RenderTexture>
+                    </meshBasicMaterial>
                 </mesh>
-                {/* Stem */}
-                <mesh position={[0, 150, 0]}>
-                    <cylinderGeometry args={[5, 5, 300]} />
-                    <meshStandardMaterial color="#ccc" metalness={0.8} roughness={0.1} />
-                </mesh>
-                {/* Head */}
-                <group position={[0, 300, 50]} rotation={[0.5, 0, 0]}>
-                    <mesh rotation={[1.57, 0, 0]}>
-                        <coneGeometry args={[40, 80, 32, 1, true]} />
-                        <meshStandardMaterial color="white" side={2} />
-                    </mesh>
-                    {/* Light Bulb */}
-                    <pointLight position={[0, -20, 0]} distance={800} intensity={3} color="#ffaa55" castShadow />
-                    <mesh position={[0, -10, 0]}>
-                        <sphereGeometry args={[15]} />
-                        <meshBasicMaterial color="#ffaa55" toneMapped={false} />
-                    </mesh>
-                </group>
             </group>
         </group>
     );

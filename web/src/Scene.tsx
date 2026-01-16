@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { RobotModel } from './RobotModel';
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { DeskEnvironment } from './components/DeskEnvironment';
 
 interface SceneProps {
@@ -10,6 +10,9 @@ interface SceneProps {
 }
 
 export function Scene({ moveCmd, lookCmd }: SceneProps) {
+    // Shared State for Camera Monitor
+    const robotState = useRef({ x: 500, z: -300, theta: 120, pan: 0, tilt: 0 });
+
     return (
         <Canvas camera={{ position: [250, 250, 250], fov: 90 }} shadows>
             <color attach="background" args={['#101010']} />
@@ -21,11 +24,11 @@ export function Scene({ moveCmd, lookCmd }: SceneProps) {
             <pointLight position={[0, 1000, 0]} intensity={1.5} decay={0} castShadow shadow-mapSize={[2048, 2048]} />
 
             {/* Desk Environment (Desk, Monitor, Lamp) */}
-            <DeskEnvironment />
+            <DeskEnvironment robotState={robotState} />
 
             {/* Robot Model */}
             <Suspense fallback={null}>
-                <RobotModel moveCmd={moveCmd} lookCmd={lookCmd} />
+                <RobotModel moveCmd={moveCmd} lookCmd={lookCmd} robotState={robotState} />
             </Suspense>
 
             <OrbitControls
