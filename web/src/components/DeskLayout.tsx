@@ -1,8 +1,12 @@
 import { Grid } from '@react-three/drei';
+import { Room } from './Room';
 
 export function DeskLayout() {
     return (
         <group>
+            {/* The Room Environment (Floor, Walls) */}
+            <Room />
+
             {/* Desk Surface (1200mm x 800mm) */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
                 <planeGeometry args={[1200, 800]} />
@@ -63,10 +67,10 @@ export function DeskLayout() {
                         <meshStandardMaterial color="white" side={2} />
                     </mesh>
                     {/* Light Bulb */}
-                    <pointLight position={[0, -20, 0]} distance={800} intensity={3} color="#ffaa55" castShadow />
+                    <pointLight position={[0, -20, 0]} distance={1500} intensity={15} color="#ffaa55" castShadow />
                     <mesh position={[0, -10, 0]}>
                         <sphereGeometry args={[15]} />
-                        <meshBasicMaterial color="#ffaa55" toneMapped={false} />
+                        <meshBasicMaterial color="#ffcc88" toneMapped={false} />
                     </mesh>
                 </group>
             </group>

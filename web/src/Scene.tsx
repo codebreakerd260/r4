@@ -14,11 +14,11 @@ export function Scene({ moveCmd, lookCmd }: SceneProps) {
     const robotState = useRef({ x: 500, z: -300, theta: 120, pan: 0, tilt: 0 });
 
     return (
-        <Canvas camera={{ position: [250, 250, 250], fov: 90 }} shadows>
+        <Canvas camera={{ position: [1000, 800, 1000], fov: 50, far: 10000 }} shadows>
             <color attach="background" args={['#101010']} />
 
             {/* Ambient Light for base visibility */}
-            <ambientLight intensity={0.2} />
+            <ambientLight intensity={0.8} />
 
             {/* Main Overhead Room Light */}
             <pointLight position={[0, 1000, 0]} intensity={1.5} decay={0} castShadow shadow-mapSize={[2048, 2048]} />
@@ -37,7 +37,7 @@ export function Scene({ moveCmd, lookCmd }: SceneProps) {
                 minPolarAngle={0}
                 maxPolarAngle={Math.PI / 2.2}
                 minDistance={300}
-                maxDistance={1200}
+                maxDistance={5000}
             />
         </Canvas>
     );
