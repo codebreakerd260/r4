@@ -1,10 +1,14 @@
 import { useRef } from 'react';
 import { useLoader, useFrame } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
-import { useControls } from 'leva';
 import { Group } from 'three';
 
-export function RobotModel() {
+interface RobotModelProps {
+  moveCmd: { v: number; w: number };
+  lookCmd: { pan: number; tilt: number };
+}
+
+export function RobotModel({ moveCmd, lookCmd }: RobotModelProps) {
   const group = useRef<Group>(null);
 
   // Load STLs
@@ -15,12 +19,9 @@ export function RobotModel() {
   const camHead = useLoader(STLLoader, '/models/2c_cam_assembly.stl');
   const body = useLoader(STLLoader, '/models/3_remaining_all.stl');
 
-  // Controls
-  const { pan, tilt, wheelRot } = useControls({
-    pan: { value: 0, min: -90, max: 90 },
-    tilt: { value: 0, min: -45, max: 45 },
-    wheelRot: { value: 0, min: 0, max: 360 },
-  });
+  // Kinematics Constants (mm)
+  const WHEEL_SEP = 140;
+  const WHEEL_RAD = 32.5;
 
   // Pivots
   const P_WHEEL_L = [-70, 20, 32.5] as const;
@@ -34,13 +35,33 @@ export function RobotModel() {
   const panGrp = useRef<Group>(null);
   const tiltGrp = useRef<Group>(null);
 
-  useFrame(() => {
-    const rPan = pan * (Math.PI / 180);
-    const rTilt = tilt * (Math.PI / 180);
-    const rWheel = wheelRot * (Math.PI / 180);
+  // State for integration
+  const wheelAngles = useRef({ l: 0, r: 0 });
 
-    if (lWheelGrp.current) lWheelGrp.current.rotation.x = rWheel;
-    if (rWheelGrp.current) rWheelGrp.current.rotation.x = rWheel;
+  useFrame((_, delta) => {
+    // 1. Servo Control (Direct Position from Props)
+    // Scale inputs if necessary or assume inputs are already in degrees
+    // In App.tsx: Pan is scaled to (-90, 90), Tilt to (45).
+    const rPan = lookCmd.pan * (Math.PI / 180);
+    const rTilt = lookCmd.tilt * (Math.PI / 180);
+
+    // 2. Differential Drive Kinematics Integration (From Props)
+    const velocity = moveCmd.v;
+    const omega = moveCmd.w;
+
+    // vL = v - (w * L / 2)
+    // vR = v + (w * L / 2)
+    const vL = velocity - (omega * WHEEL_SEP) / 2;
+    const vR = velocity + (omega * WHEEL_SEP) / 2;
+
+    // dTheta = (v / r) * dt
+    wheelAngles.current.l += (vL / WHEEL_RAD) * delta;
+    wheelAngles.current.r += (vR / WHEEL_RAD) * delta;
+
+    // Apply Transformations
+    if (lWheelGrp.current) lWheelGrp.current.rotation.x = wheelAngles.current.l;
+    if (rWheelGrp.current) rWheelGrp.current.rotation.x = wheelAngles.current.r;
+
     if (panGrp.current) panGrp.current.rotation.z = rPan;
     if (tiltGrp.current) tiltGrp.current.rotation.x = rTilt;
   });
@@ -60,7 +81,6 @@ export function RobotModel() {
       {/* 1a. Left Wheel Group */}
       <group ref={lWheelGrp} position={P_WHEEL_L}>
         <mesh geometry={wheelL} position={[-P_WHEEL_L[0], -P_WHEEL_L[1], -P_WHEEL_L[2]]} castShadow receiveShadow>
-          {/* Rubber Tire Look */}
           <meshPhysicalMaterial color="#1a1a1a" roughness={0.8} metalness={0.1} />
         </mesh>
       </group>

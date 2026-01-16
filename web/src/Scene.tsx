@@ -3,9 +3,14 @@ import { OrbitControls, Grid } from '@react-three/drei';
 import { RobotModel } from './RobotModel';
 import { Suspense } from 'react';
 
-export function Scene() {
+interface SceneProps {
+    moveCmd: { v: number; w: number };
+    lookCmd: { pan: number; tilt: number };
+}
+
+export function Scene({ moveCmd, lookCmd }: SceneProps) {
     return (
-        <Canvas camera={{ position: [-250, 150, -250], fov: 50 }} shadows>
+        <Canvas camera={{ position: [-300, 150, -350], fov: 50 }} shadows>
             <color attach="background" args={['#202020']} />
             <fog attach="fog" args={['#202020', 500, 2000]} />
 
@@ -21,7 +26,7 @@ export function Scene() {
 
             {/* Robot Model */}
             <Suspense fallback={null}>
-                <RobotModel />
+                <RobotModel moveCmd={moveCmd} lookCmd={lookCmd} />
             </Suspense>
 
             {/* Helpers */}
