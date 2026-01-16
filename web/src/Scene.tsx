@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Suspense, useRef } from 'react';
-import { useControls, folder } from 'leva';
+import { useControls } from 'leva';
 import { RobotModel } from './RobotModel';
 import { DeskEnvironment } from './components/DeskEnvironment';
 import { Room } from './components/Room';
