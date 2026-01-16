@@ -2,13 +2,16 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { PerspectiveCamera, RenderTexture } from '@react-three/drei';
 import { DeskLayout } from './DeskLayout';
+import { Room } from './Room';
 import { PerspectiveCamera as PerspectiveCameraType } from 'three';
 
 interface DeskEnvironmentProps {
     robotState?: any;
+    roomProps: { width: number; height: number; depth: number };
+    deskPosition: [number, number, number];
 }
 
-export function DeskEnvironment({ robotState }: DeskEnvironmentProps) {
+export function DeskEnvironment({ robotState, roomProps, deskPosition }: DeskEnvironmentProps) {
     const camRef = useRef<PerspectiveCameraType>(null);
     const P_TILT_HEIGHT = 155.6; // Approximate camera height
 
@@ -25,9 +28,6 @@ export function DeskEnvironment({ robotState }: DeskEnvironmentProps) {
             const tiltRad = tilt * (Math.PI / 180);
 
             // Apply Y rotation (Heading)
-            // Note: Camera defaults to looking down -Z. 
-            // Our theta=0 faces -Z. +Theta is CCW (Left). 
-            // Three.js rotY IS CCW. So direct mapping works.
             camRef.current.rotation.set(tiltRad, globalHeading, 0, 'YXZ');
         }
     });
@@ -49,7 +49,13 @@ export function DeskEnvironment({ robotState }: DeskEnvironmentProps) {
                             <ambientLight intensity={0.6} />
                             <pointLight position={[0, 1000, 0]} intensity={1.0} />
 
-                            {/* The World seen by the Robot */}
+                            {/* The Ambient World seen by the Robot */}
+                            {/* In FPV, Desk is origin. Room is shifted relative to Desk. */}
+                            <group position={[-deskPosition[0], -deskPosition[1], -deskPosition[2]]}>
+                                <Room {...roomProps} />
+                            </group>
+
+                            {/* The Desk itself */}
                             <DeskLayout />
                         </RenderTexture>
                     </meshBasicMaterial>

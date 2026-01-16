@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { VideoTexture, DoubleSide } from 'three';
+import { VideoTexture } from 'three';
 
 interface WebcamWallProps {
     width: number;
@@ -54,15 +54,18 @@ export function WebcamWall({ width, height }: WebcamWallProps) {
                 <meshStandardMaterial color="#111" roughness={0.9} />
             </mesh>
 
-            {/* 2. The Video Mesh (Sized to Aspect Ratio) */}
+            {/* 2. The Video Mesh (Sized to Aspect Ratio - Contain) */}
             {texture && (
                 <mesh
                     rotation={[0, Math.PI, 0]}
-                    position={[0, 0, -5]} /* Shift "Forward" into the room */
+                    position={[0, 0, -25]} /* Shift "Forward" into the room */
                     scale={[-1, 1, 1]}
                 >
-                    <planeGeometry args={[width, width / aspect]} />
-                    <meshBasicMaterial map={texture} side={DoubleSide} />
+                    <planeGeometry args={[
+                        (aspect > width / height) ? width : height * aspect,
+                        (aspect > width / height) ? width / aspect : height
+                    ]} />
+                    <meshBasicMaterial map={texture} />
                 </mesh>
             )}
         </group>

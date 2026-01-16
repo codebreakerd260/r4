@@ -1,8 +1,10 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { RobotModel } from './RobotModel';
 import { Suspense, useRef } from 'react';
+import { useControls, folder } from 'leva';
+import { RobotModel } from './RobotModel';
 import { DeskEnvironment } from './components/DeskEnvironment';
+import { Room } from './components/Room';
 
 interface SceneProps {
     moveCmd: { v: number; w: number };
@@ -10,8 +12,24 @@ interface SceneProps {
 }
 
 export function Scene({ moveCmd, lookCmd }: SceneProps) {
-    // Shared State for Camera Monitor
     const robotState = useRef({ x: 500, z: -300, theta: 120, pan: 0, tilt: 0 });
+
+    const { width, height, depth } = useControls('Room Size', {
+        width: { value: 5000, min: 2000, max: 10000, step: 100 },
+        height: { value: 2800, min: 2000, max: 6000, step: 100 },
+        depth: { value: 4000, min: 2000, max: 10000, step: 100 }
+    });
+
+    // Calculate safe limits (Room Half-Dimension minus Desk Half-Dimension)
+    // Desk is approx 1200mm wide (X) and 800mm deep (Z)
+    const xLim = Math.floor((width / 2) - 600);
+    const zLim = Math.floor((depth / 2) - 400);
+
+    const { deskX, deskY, deskZ } = useControls('Desk Location', {
+        deskX: { value: 0, min: -xLim, max: xLim, step: 10, label: 'X (Side)' },
+        deskY: { value: 750, min: 0, max: 1500, step: 10, label: 'Y (Height)' },
+        deskZ: { value: 0, min: -zLim, max: zLim, step: 10, label: 'Z (Back/Forth)' }
+    }, [width, depth]); // Re-run when size changes
 
     return (
         <Canvas camera={{ position: [1000, 800, 1000], fov: 50, far: 10000 }} shadows>
@@ -20,15 +38,25 @@ export function Scene({ moveCmd, lookCmd }: SceneProps) {
             {/* Ambient Light for base visibility */}
             <ambientLight intensity={0.8} />
 
-            {/* Main Overhead Room Light */}
-            <pointLight position={[0, 1000, 0]} intensity={1.5} decay={0} castShadow shadow-mapSize={[2048, 2048]} />
-
-            {/* Desk Environment (Desk, Monitor, Lamp) */}
-            <DeskEnvironment robotState={robotState} />
-
-            {/* Robot Model */}
             <Suspense fallback={null}>
-                <RobotModel moveCmd={moveCmd} lookCmd={lookCmd} robotState={robotState} />
+                {/* 1. Static Room (World Frame) */}
+                <Room width={width} height={height} depth={depth} />
+
+                {/* 2. Moving Desk Group */}
+                <group position={[deskX, deskY, deskZ]}>
+                    <DeskEnvironment
+                        robotState={robotState}
+                        roomProps={{ width, height, depth }}
+                        deskPosition={[deskX, deskY, deskZ]}
+                    />
+
+                    <RobotModel
+                        moveCmd={moveCmd}
+                        lookCmd={lookCmd}
+                        robotState={robotState}
+                        initialPose={{ x: 0, y: 0, z: 0, theta: 0 }}
+                    />
+                </group>
             </Suspense>
 
             <OrbitControls

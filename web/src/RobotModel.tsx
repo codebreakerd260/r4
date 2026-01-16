@@ -7,6 +7,7 @@ interface RobotModelProps {
   moveCmd: { v: number; w: number };
   lookCmd: { pan: number; tilt: number };
   robotState?: any;
+  initialPose?: { x: number; y: number; z: number; theta: number };
 }
 
 export function RobotModel({ moveCmd, lookCmd, robotState }: RobotModelProps) {
