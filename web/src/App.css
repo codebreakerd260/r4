@@ -1,42 +1,57 @@
+/* Remove default Vite styling */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrollbars */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Overlay UI */
+.overlay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  color: white;
+  pointer-events: none; /* Let clicks pass through to canvas */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.overlay h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -1px;
+}
+
+.overlay p {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.8;
+  font-weight: 300;
+}
+
+/* Leva Panel Positioning */
+.leva-c > div {
+    /* Force Leva to top-right on desktop by default? 
+       Leva usually handles this, but let's ensure it's predictable. */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  .overlay {
+    top: 10px;
+    left: 10px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .overlay h1 {
+    font-size: 1.5rem;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  
+  .overlay p {
+    font-size: 0.9rem;
   }
-}
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  /* Force Leva to collapse or move on small screens if needed */
 }

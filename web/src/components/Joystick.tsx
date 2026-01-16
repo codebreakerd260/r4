@@ -40,11 +40,12 @@ export function Joystick({ onMove, onEnd }: JoystickProps) {
             ref={containerRef}
             style={{
                 position: 'absolute',
-                bottom: '20px',
-                right: '20px',
+                bottom: '5%',
+                right: '5%',
                 width: '150px',
                 height: '150px',
-                zIndex: 10
+                zIndex: 10,
+                touchAction: 'none' // Important for touch events
             }}
         />
     );
