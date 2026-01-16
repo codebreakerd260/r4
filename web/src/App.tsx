@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Leva, useControls } from 'leva';
 import { Scene } from './Scene';
 import { Joystick } from './components/Joystick';
@@ -18,12 +18,50 @@ function App() {
   const [moveCmd, setMoveCmd] = useState({ v: 0, w: 0 });
   const [lookCmd, setLookCmd] = useState({ pan: 0, tilt: 0 });
 
+  // WebSocket Connection
+  const ws = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    // Connect to Backend API
+    const socket = new WebSocket('ws://localhost:8000/ws');
+
+    socket.onopen = () => {
+      console.log('Connected to r4 Brain');
+    };
+
+    socket.onclose = () => {
+      console.log('Disconnected from r4 Brain');
+    };
+
+    socket.onerror = (err) => {
+      console.error('WebSocket Error:', err);
+    };
+
+    ws.current = socket;
+
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  // Transmit Commands
+  useEffect(() => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      const payload = {
+        type: 'control',
+        move: moveCmd,
+        look: lookCmd
+      };
+      ws.current.send(JSON.stringify(payload));
+    }
+  }, [moveCmd, lookCmd]);
+
   // Left Joystick: Drive (Velocity, Omega)
   const handleDrive = (data: { x: number; y: number }) => {
     // scale inputs by config values
     setMoveCmd({
-      v: data.y * -config.maxVelocity,
-      w: data.x * -config.maxOmega
+      v: data.y * config.maxVelocity,
+      w: data.x * config.maxOmega
     });
   };
 

@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 app = FastAPI()
 
@@ -25,3 +26,16 @@ def read_root():
 def read_telemetry():
     # Placeholder for IMU/Sensor data
     return {"pan": 0, "tilt": 0, "battery": 100}
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    print("Client connected")
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # For now, just print the command to verify throughput
+            # In real system, this would write to Serial
+            print(f"CMD: {data}")
+    except WebSocketDisconnect:
+        print("Client disconnected")
