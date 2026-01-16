@@ -43,7 +43,7 @@ export function DeskEnvironment({ robotState }: DeskEnvironmentProps) {
                     <planeGeometry args={[480, 280]} />
                     <meshBasicMaterial toneMapped={false}>
                         <RenderTexture attach="map" width={512} height={512}>
-                            <PerspectiveCamera makeDefault manual ref={camRef} position={[0, 150, 0]} fov={80} />
+                            <PerspectiveCamera makeDefault manual ref={camRef} position={[0, 150, 0]} fov={60} near={10} far={5000} />
 
                             {/* Lighting for inside the monitor */}
                             <ambientLight intensity={0.6} />
