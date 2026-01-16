@@ -1,0 +1,30 @@
+# Node / Frontend
+node_modules/
+web/dist/
+web/dist-ssr/
+*.local
+web/.eslintcache
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+api/venv/
+.env
+.venv
+env/
+ENV/
+*.log
+
+# OpenSCAD
+*.scad~
+backup/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp

@@ -53,9 +53,28 @@ The model is pre-configured to export specific sub-assemblies for manufacturing 
 -   **Split Topology**: Servos utilize a split `SG90_Body` vs `Servo_Horn` architecture to prevent visual artifacts.
 -   **Moving Topology**: The Tilt servo is clamped by the C-Cradle.
 
-## Animation
-
-The model is rigged for animation. The internal variables in `config.scad` drive the motion based on the special `$t` time variable:
--   `pan_angle`: Oscillates +/- 45 degrees.
--   `tilt_angle`: Oscillates +/- 30 degrees.
 -   `wheel_rot`: Simulates forward motion.
+
+## Web Interface (Phase 2)
+
+The robot features a hybrid React + FastAPI interface for control and visualization.
+
+### Architecture
+-   **Frontend (`web/`)**: Vite + React + TypeScript + R3F. Visualizes the `export/` models in a browser.
+-   **Backend (`api/`)**: Python FastAPI. Bridges the web UI to hardware (Serial/ROS) and AI (MediaPipe).
+
+### Setup
+1.  **Frontend**:
+    ```bash
+    cd web
+    npm install
+    npm run dev
+    ```
+2.  **Backend**:
+    ```bash
+    # Windows
+    api\venv\Scripts\activate
+    pip install -r api/requirements.txt
+    uvicorn api.main:app --reload
+    ```
+
