@@ -20,15 +20,15 @@ module Detailed_L298N() {
         translate([-18, -18, -6]) cylinder(d=6, h=10, center=true);
     }
     color("#111") translate([0,0,12]) difference() { cube([25, 20, 22], center=true); for(x=[-10:4:10]) translate([x, 5, 0]) cube([2, 12, 24], center=true); }
-    color("black") translate([15, 15, 8]) cylinder(d=8, h=14);
+    color("black") translate([15, 15, 1]) cylinder(d=8, h=14);
     color("dodgerblue") { translate([0, -18, 6]) cube([20, 8, 10], center=true); translate([-18, 0, 6]) cube([8, 30, 10], center=true); translate([18, 0, 6]) cube([8, 30, 10], center=true); }
 }
 
 module Detailed_Buck() {
     color("dodgerblue") cube([43, 21, 2], center=true);
     color("black") { translate([18, 0, -6]) cylinder(d=6, h=10, center=true); translate([-18, 0, -6]) cylinder(d=6, h=10, center=true); }
-    color("#B87333") translate([-8, 0, 6]) cylinder(d=12, h=10);
-    color("black") translate([12, 0, 6]) cylinder(d=8, h=10);
+    color("#B87333") translate([-8, 0, 1]) cylinder(d=12, h=10);
+    color("black") translate([12, 0, 1]) cylinder(d=8, h=10);
     color("blue") translate([15, 6, 5]) cube([5, 5, 8], center=true);
     color("gold") translate([15, 6, 9]) cylinder(d=2, h=1);
 }

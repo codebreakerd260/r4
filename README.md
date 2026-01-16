@@ -29,6 +29,19 @@ In `main.scad`, change the `view_index` variable to inspect different subsystems
 | `300` | **Gimbal** | Pan-Tilt Mechanism (Servos, C-Cradle, Camera). |
 | `400` | **Electronics** | Compute Layer (Pi 4, IMU, Motor Drivers). |
 
+## Export (`export/`)
+
+The model is pre-configured to export specific sub-assemblies for manufacturing or simulation. Open these files individually to render/export:
+
+| File | Component | Description |
+| :--- | :--- | :--- |
+| `1a_wheel_left.scad` | **Left Wheel** | Positioned In-Place (-X). |
+| `1b_wheel_right.scad` | **Right Wheel** | Positioned In-Place (+X). |
+| `2a_base_pan.scad` | **Pan Assembly** | Base Mount + Pan Servo Body. |
+| `2b_u_bracket.scad` | **U-Bracket** | Bracket + Integrated Servo Horns. |
+| `2c_cam_assembly.scad` | **Camera Head** | C-Cradle + Tilt Servo Body + Camera. |
+| `3_remaining_all.scad` | **Main Body** | Chassis, Sensors, Electronics (Excludes Wheels & Gimbal). |
+
 ## Modules
 
 ### Drive Train (`assemblies/structure.scad`)
@@ -36,8 +49,9 @@ In `main.scad`, change the `view_index` variable to inspect different subsystems
 -   Mirrored symmetrical design for optimal footprint.
 
 ### Gimbal (`assemblies/gimbal_layer.scad`)
--   **Moving Servo Topology**: The Tilt servo is clamped by the C-Cradle.
--   **Parametric Design**: Adjustable dimensions via `config.scad`.
+-   **Servo Horn Integration**: Horns are geometrically fused to the **U-Bracket** (not the servo), matching the physical "clipped-in" assembly.
+-   **Split Topology**: Servos utilize a split `SG90_Body` vs `Servo_Horn` architecture to prevent visual artifacts.
+-   **Moving Topology**: The Tilt servo is clamped by the C-Cradle.
 
 ## Animation
 
