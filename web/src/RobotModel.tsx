@@ -37,8 +37,9 @@ export function RobotModel({ moveCmd, lookCmd }: RobotModelProps) {
 
   // State for integration
   const wheelAngles = useRef({ l: 0, r: 0 });
-  // 4. Add state ref for robot pose
-  const pose = useRef({ x: 0, z: 0, theta: 0 }); // theta=0 means facing -Z (Front)
+  // 4. Add state ref for robot pose (Home: Mirrored to Lamp)
+  // Lamp: x=-500, z=-300, rot=0.75. Robot: x=500, z=-300, theta=120 deg (Face Center).
+  const pose = useRef({ x: 400, z: -200, theta: 180 });
 
   useFrame((_, delta) => {
     // 1. Servo Control (Direct Position from Props)
@@ -63,22 +64,38 @@ export function RobotModel({ moveCmd, lookCmd }: RobotModelProps) {
     // 5. World Pose Integration (Global Locomotion)
     // Robot faces -Z at theta=0.
     // +Omega (CCW) increases theta.
-    pose.current.theta += omega * delta;
+    const omegaDeg = omega * (180 / Math.PI);
+    pose.current.theta += omegaDeg * delta;
 
     // Calculate velocity vector based on heading
     // vx = -v * sin(theta) (Left is -X)
     // vz = -v * cos(theta) (Forward is -Z)
-    const vx = -velocity * Math.sin(pose.current.theta);
-    const vz = -velocity * Math.cos(pose.current.theta);
+    const rTheta = pose.current.theta * (Math.PI / 180);
+    const vx = -velocity * Math.sin(rTheta);
+    const vz = -velocity * Math.cos(rTheta);
 
-    pose.current.x += vx * delta;
-    pose.current.z += vz * delta;
+    // Desk Bounds (1200x800mm -> +/- 600, +/- 400)
+    // Robot Radius approx 80mm
+    const BORDER = 80;
+    const X_LIM = 600 - BORDER;
+    const Z_LIM = 400 - BORDER;
+
+    // Proposed next position
+    let nextX = pose.current.x + vx * delta;
+    let nextZ = pose.current.z + vz * delta;
+
+    // Hard Stop at Desk Edges
+    nextX = Math.max(-X_LIM, Math.min(X_LIM, nextX));
+    nextZ = Math.max(-Z_LIM, Math.min(Z_LIM, nextZ));
+
+    pose.current.x = nextX;
+    pose.current.z = nextZ;
 
     // Apply Global Transform to robotRef
     if (robotRef.current) {
       robotRef.current.position.x = pose.current.x;
       robotRef.current.position.z = pose.current.z;
-      robotRef.current.rotation.y = pose.current.theta;
+      robotRef.current.rotation.y = pose.current.theta * (Math.PI / 180);
     }
 
     // Apply Local Wheel/Servo Transforms

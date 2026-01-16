@@ -61,7 +61,7 @@ function App() {
     // scale inputs by config values
     setMoveCmd({
       v: data.y * config.maxVelocity,
-      w: data.x * config.maxOmega
+      w: data.x * -config.maxOmega
     });
   };
 

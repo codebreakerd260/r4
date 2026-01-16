@@ -1,7 +1,8 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { RobotModel } from './RobotModel';
 import { Suspense } from 'react';
+import { DeskEnvironment } from './components/DeskEnvironment';
 
 interface SceneProps {
     moveCmd: { v: number; w: number };
@@ -10,28 +11,31 @@ interface SceneProps {
 
 export function Scene({ moveCmd, lookCmd }: SceneProps) {
     return (
-        <Canvas camera={{ position: [-300, 150, -350], fov: 50 }} shadows>
-            <color attach="background" args={['#202020']} />
-            <fog attach="fog" args={['#202020', 500, 2000]} />
+        <Canvas camera={{ position: [250, 250, 250], fov: 90 }} shadows>
+            <color attach="background" args={['#101010']} />
 
-            {/* Lights */}
-            <ambientLight intensity={0.5} />
-            <pointLight position={[500, 500, 500]} intensity={2.0} decay={0} castShadow />
+            {/* Ambient Light for base visibility */}
+            <ambientLight intensity={0.2} />
 
-            {/* Ground */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
-                <planeGeometry args={[5000, 5000]} />
-                <meshStandardMaterial color="#202020" roughness={0.8} metalness={0.2} />
-            </mesh>
+            {/* Main Overhead Room Light */}
+            <pointLight position={[0, 1000, 0]} intensity={1.5} decay={0} castShadow shadow-mapSize={[2048, 2048]} />
+
+            {/* Desk Environment (Desk, Monitor, Lamp) */}
+            <DeskEnvironment />
 
             {/* Robot Model */}
             <Suspense fallback={null}>
                 <RobotModel moveCmd={moveCmd} lookCmd={lookCmd} />
             </Suspense>
 
-            {/* Helpers */}
-            <Grid infiniteGrid sectionSize={100} cellSize={10} sectionColor="#666" cellColor="#444" />
-            <OrbitControls makeDefault />
+            <OrbitControls
+                makeDefault
+                enablePan={false}
+                minPolarAngle={0}
+                maxPolarAngle={Math.PI / 2.2}
+                minDistance={300}
+                maxDistance={1200}
+            />
         </Canvas>
     );
 }
