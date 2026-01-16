@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { VideoTexture } from 'three';
+import { VideoTexture, LinearFilter, SRGBColorSpace } from 'three';
 
 interface WebcamWallProps {
     width: number;
@@ -25,12 +25,16 @@ export function WebcamWall({ width, height }: WebcamWallProps) {
 
         // Request Camera Access
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } })
                 .then((stream) => {
                     video.srcObject = stream;
                     video.play();
 
                     const vidTex = new VideoTexture(video);
+                    vidTex.minFilter = LinearFilter;
+                    vidTex.magFilter = LinearFilter;
+                    vidTex.generateMipmaps = false;
+                    vidTex.colorSpace = SRGBColorSpace;
                     setTexture(vidTex);
                 })
                 .catch((err) => {
@@ -58,14 +62,14 @@ export function WebcamWall({ width, height }: WebcamWallProps) {
             {texture && (
                 <mesh
                     rotation={[0, Math.PI, 0]}
-                    position={[0, 0, -25]} /* Shift "Forward" into the room */
+                    position={[0, 0, -100]} /* Shift "Forward" into the room significantly */
                     scale={[-1, 1, 1]}
                 >
                     <planeGeometry args={[
                         (aspect > width / height) ? width : height * aspect,
                         (aspect > width / height) ? width / aspect : height
                     ]} />
-                    <meshBasicMaterial map={texture} />
+                    <meshBasicMaterial map={texture} toneMapped={false} />
                 </mesh>
             )}
         </group>

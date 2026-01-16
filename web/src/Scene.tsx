@@ -32,7 +32,7 @@ export function Scene({ moveCmd, lookCmd }: SceneProps) {
     }, [width, depth]); // Re-run when size changes
 
     return (
-        <Canvas camera={{ position: [1000, 800, 1000], fov: 50, far: 10000 }} shadows>
+        <Canvas camera={{ position: [1000, 800, 1000], fov: 50, far: 10000, near: 100 }} shadows>
             <color attach="background" args={['#101010']} />
 
             {/* Ambient Light for base visibility */}
