@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Leva, useControls } from 'leva';
-import { Scene } from './Scene';
-import { Joystick } from './components/Joystick';
+import { Scene } from './features/environment/Scene';
+import { Joystick } from './features/controls/Joystick';
+import { useRobotSocket } from './hooks/useRobotSocket';
 import './App.css';
 
 function App() {
@@ -14,64 +15,59 @@ function App() {
     maxTilt: { value: 20, min: 1, max: 90, label: 'Tilt Range (deg)' }
   });
 
-  // State for Robot Control
-  const [moveCmd, setMoveCmd] = useState({ v: 0, w: 0 });
-  const [lookCmd, setLookCmd] = useState({ pan: 0, tilt: 0 });
+  // WebSocket Hook (Handles connection & incoming CV commands)
+  const { isConnected, moveCmd: cvMove, lookCmd: cvLook, sendCommand } = useRobotSocket('ws://localhost:8000/ws');
 
-  // WebSocket Connection
-  const ws = useRef<WebSocket | null>(null);
+  // Joystick State (Manual Input)
+  const [manualMove, setManualMove] = useState({ v: 0, w: 0 });
+  const [manualLook, setManualLook] = useState({ pan: 0, tilt: 0 });
+
+  // Merge CV + Manual (Manual overrides CV if active?)
+  // For now, let's just use Manual directly for sending, and CV for display/override if needed
+  // Or simpler: If Manual is 0, use CV. 
+
+  // ACTUALLY: The previous logic was: if update from socket, set state.
+  // The hook provides `moveCmd` from socket. 
+  // Let's use a combined effect to sync them or just prefer one.
+
+  // Current logic: 
+  // 1. User moves joystick -> updates `moveCmd` -> sends to backend.
+  // 2. Backend sends CV -> updates `moveCmd` -> joystick updates?
+
+  // Let's keep it simple: The Source of Truth is the State.
+  // We need to sync the hook's output to our state if it changes.
 
   useEffect(() => {
-    // Connect to Backend API
-    const socket = new WebSocket('ws://localhost:8000/ws');
+    if (cvMove.v !== 0 || cvMove.w !== 0) setManualMove(cvMove);
+  }, [cvMove]);
 
-    socket.onopen = () => {
-      console.log('Connected to r4 Brain');
-    };
-
-    socket.onclose = () => {
-      console.log('Disconnected from r4 Brain');
-    };
-
-    socket.onerror = (err) => {
-      console.error('WebSocket Error:', err);
-    };
-
-    ws.current = socket;
-
-    return () => {
-      socket.close();
-    };
-  }, []);
-
-  // Transmit Commands
   useEffect(() => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      const payload = {
-        type: 'control',
-        move: moveCmd,
-        look: lookCmd
-      };
-      ws.current.send(JSON.stringify(payload));
+    if (cvLook.pan !== 0 || cvLook.tilt !== 0) setManualLook(cvLook);
+  }, [cvLook]);
+
+  // Transmit whenever Manual State changes (User Input)
+  useEffect(() => {
+    if (isConnected) {
+      sendCommand({ move: manualMove, look: manualLook });
     }
-  }, [moveCmd, lookCmd]);
+  }, [manualMove, manualLook, isConnected, sendCommand]);
 
   // Left Joystick: Drive (Velocity, Omega)
   const handleDrive = (data: { x: number; y: number }) => {
     // scale inputs by config values
-    setMoveCmd({
+    setManualMove({
       v: data.y * config.maxVelocity,
       w: data.x * -(config.maxTurnSpeed * (Math.PI / 180))
     });
   };
 
   const handleDriveEnd = () => {
-    setMoveCmd({ v: 0, w: 0 });
+    setManualMove({ v: 0, w: 0 });
   };
 
   // Right Joystick: Gimbal (Pan, Tilt)
   const handleLook = (data: { x: number; y: number }) => {
-    setLookCmd({
+    setManualLook({
       pan: data.x * -config.maxPan,
       tilt: data.y * config.maxTilt
     });
@@ -79,7 +75,7 @@ function App() {
 
   const handleLookEnd = () => {
     // Return to center on release
-    setLookCmd({ pan: 0, tilt: 0 });
+    setManualLook({ pan: 0, tilt: 0 });
   };
 
   return (
@@ -95,7 +91,7 @@ function App() {
       </div>
 
       {/* 3D Scene - Pass Commands */}
-      <Scene moveCmd={moveCmd} lookCmd={lookCmd} />
+      <Scene moveCmd={manualMove} lookCmd={manualLook} />
 
       {/* Left Joystick: Drive (Orange) */}
       <Joystick

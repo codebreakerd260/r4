@@ -28,7 +28,9 @@ export function WebcamWall({ width, height }: WebcamWallProps) {
             navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } })
                 .then((stream) => {
                     video.srcObject = stream;
-                    video.play();
+                    video.play().catch(e => {
+                        if (e.name !== 'AbortError') console.error("Video play error:", e);
+                    });
 
                     const vidTex = new VideoTexture(video);
                     vidTex.minFilter = LinearFilter;

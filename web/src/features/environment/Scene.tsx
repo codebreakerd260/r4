@@ -2,9 +2,9 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Suspense, useRef } from 'react';
 import { useControls } from 'leva';
-import { RobotModel } from './RobotModel';
-import { DeskEnvironment } from './components/DeskEnvironment';
-import { Room } from './components/Room';
+import { RobotModel } from '../robot/RobotModel';
+import { DeskEnvironment } from './DeskEnvironment';
+import { Room } from './Room';
 
 interface SceneProps {
     moveCmd: { v: number; w: number };
